@@ -14,7 +14,7 @@ let tempEmailForVerification = "";
 
 
 /* ========================================= */
-/* --- AUTH SYSTEM LOGIC (UPDATED) --- */
+/* --- AUTH SYSTEM LOGIC (LENGKAP) --- */
 /* ========================================= */
 
 // Cek Status Login Saat Load
@@ -36,7 +36,7 @@ function updateUIBasedOnAuth(user) {
     const loginBtn = document.getElementById('btnLoginMain');
     const profileIcon = document.getElementById('userProfileIcon');
     const authModal = document.getElementById('authModal');
-
+    
     if (user) {
         if(loginBtn) loginBtn.style.display = 'none';
         if(profileIcon) profileIcon.style.display = 'flex';
@@ -63,23 +63,42 @@ function toggleAuthModal(show) {
     }
 }
 
-// --- SISTEM PERPINDAHAN MODE FORM (PENTING) ---
+// --- FUNGSI TOGGLE PASSWORD (MATA) ---
+function togglePasswordVisibility(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        iconElement.classList.remove('fa-eye-slash');
+        iconElement.classList.add('fa-eye');
+    } else {
+        input.type = "password";
+        iconElement.classList.remove('fa-eye');
+        iconElement.classList.add('fa-eye-slash');
+    }
+}
+
+// --- SISTEM PERPINDAHAN MODE FORM ---
 function switchAuthMode(mode) {
-    // 1. Sembunyikan semua ID form
-    ['loginForm', 'registerForm', 'verifyForm', 'forgotPasswordForm', 'resetPasswordForm'].forEach(id => {
+    // Sembunyikan semua form
+    const forms = [
+        'loginForm', 'registerForm', 'verifyForm', 
+        'forgotPasswordForm', 'recoveryCodeForm', 'newPasswordForm'
+    ];
+    forms.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
     });
 
-    // 2. Tampilkan form yang dipilih
+    // Tampilkan form yang dipilih
     if (mode === 'login') document.getElementById('loginForm').style.display = 'block';
     else if (mode === 'register') document.getElementById('registerForm').style.display = 'block';
     else if (mode === 'verify') document.getElementById('verifyForm').style.display = 'block';
     else if (mode === 'forgot') document.getElementById('forgotPasswordForm').style.display = 'block';
-    else if (mode === 'reset') document.getElementById('resetPasswordForm').style.display = 'block';
+    else if (mode === 'recovery-code') document.getElementById('recoveryCodeForm').style.display = 'block';
+    else if (mode === 'new-password') document.getElementById('newPasswordForm').style.display = 'block';
 }
 
-// --- 1. FUNGSI LOGIN ---
+// --- 1. LOGIN ---
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPassword').value;
@@ -87,18 +106,14 @@ async function handleLogin() {
     if(!email || !pass) { alert("Isi email dan password!"); return; }
 
     const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: pass
+        email: email, password: pass
     });
 
-    if (error) {
-        alert("Gagal Login: " + error.message);
-    } else {
-        updateUIBasedOnAuth(data.user);
-    }
+    if (error) alert("Gagal Login: " + error.message);
+    else updateUIBasedOnAuth(data.user);
 }
 
-// --- 2. FUNGSI REGISTER ---
+// --- 2. REGISTER ---
 async function handleRegister() {
     const username = document.getElementById('regUsername').value;
     const phone = document.getElementById('regPhone').value;
@@ -110,11 +125,8 @@ async function handleRegister() {
     if (!username || !email || !pass) { alert("Isi semua data!"); return; }
 
     const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: pass,
-        options: {
-            data: { username: username, phone: phone, full_name: username }
-        }
+        email: email, password: pass,
+        options: { data: { username: username, phone: phone, full_name: username } }
     });
 
     if (error) {
@@ -126,15 +138,13 @@ async function handleRegister() {
     }
 }
 
-// --- 3. FUNGSI VERIFIKASI OTP (Saat Daftar) ---
+// --- 3. VERIFIKASI OTP (REGISTER) ---
 async function handleVerifyOtp() {
     const code = document.getElementById('otpCode').value;
     if(!code) { alert("Masukkan kode!"); return; }
 
     const { data, error } = await supabase.auth.verifyOtp({
-        email: tempEmailForVerification,
-        token: code,
-        type: 'signup'
+        email: tempEmailForVerification, token: code, type: 'signup'
     });
 
     if (error) {
@@ -145,12 +155,11 @@ async function handleVerifyOtp() {
     }
 }
 
-// --- 4. REQUEST LUPA PASSWORD (Kirim Kode) ---
+// --- 4. LUPA PASSWORD: TAHAP 1 (KIRIM KODE) ---
 async function handleForgotPasswordRequest() {
     const email = document.getElementById('forgotEmail').value;
     if (!email) { alert("Masukkan email Anda!"); return; }
 
-    // Simpan email sementara untuk step reset
     tempEmailForVerification = email;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email);
@@ -158,62 +167,63 @@ async function handleForgotPasswordRequest() {
     if (error) {
         alert("Gagal kirim kode: " + error.message);
     } else {
-        alert("Kode pemulihan telah dikirim ke " + email + ". Cek inbox/spam.");
-        switchAuthMode('reset');
+        alert("Kode dikirim ke: " + email);
+        switchAuthMode('recovery-code'); // Pindah ke input kode
     }
 }
 
-// --- 5. VERIFIKASI & UBAH PASSWORD ---
-async function handleResetPasswordFinal() {
-    const otp = document.getElementById('resetOtpCode').value;
-    const newPass = document.getElementById('newPassword').value;
-    const confirmPass = document.getElementById('confirmNewPassword').value;
+// --- 5. LUPA PASSWORD: TAHAP 2 (CEK KODE) ---
+async function handleVerifyRecoveryCode() {
+    const otp = document.getElementById('recoveryOtpCode').value;
+    if (!otp) { alert("Masukkan kode OTP!"); return; }
 
-    if (!otp || !newPass || !confirmPass) {
-        alert("Mohon isi semua data!"); return;
-    }
-    if (newPass !== confirmPass) {
-        alert("Password baru tidak cocok!"); return;
-    }
-
-    // A. Verifikasi Kode
     const { data, error } = await supabase.auth.verifyOtp({
-        email: tempEmailForVerification,
-        token: otp,
-        type: 'recovery'
+        email: tempEmailForVerification, token: otp, type: 'recovery'
     });
 
     if (error) {
-        alert("Kode salah atau kadaluarsa: " + error.message);
+        alert("Kode Salah/Kadaluarsa: " + error.message);
     } else {
-        // B. Update Password User
-        const { error: updateError } = await supabase.auth.updateUser({
-            password: newPass
-        });
-
-        if (updateError) {
-            alert("Gagal memperbarui password: " + updateError.message);
-        } else {
-            alert("Password berhasil diubah! Silakan login dengan password baru.");
-            await supabase.auth.signOut(); // Logout sesi recovery
-            switchAuthMode('login'); // Kembali ke login
-        }
+        // Pindah ke input password baru
+        switchAuthMode('new-password'); 
     }
 }
 
-// --- FUNGSI LOGOUT ---
+// --- 6. LUPA PASSWORD: TAHAP 3 (SIMPAN PASS BARU) ---
+async function handleSaveNewPassword() {
+    const newPass = document.getElementById('newResetPassword').value;
+    const confirmPass = document.getElementById('confirmResetPassword').value;
+
+    if (!newPass || !confirmPass) { alert("Isi password baru!"); return; }
+    if (newPass !== confirmPass) { alert("Password tidak cocok!"); return; }
+
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+
+    if (error) {
+        alert("Gagal menyimpan password: " + error.message);
+    } else {
+        alert("Sukses! Password telah diganti. Silakan login kembali.");
+        await supabase.auth.signOut();
+        
+        // Reset Form
+        document.getElementById('recoveryOtpCode').value = '';
+        document.getElementById('newResetPassword').value = '';
+        document.getElementById('confirmResetPassword').value = '';
+        
+        switchAuthMode('login');
+    }
+}
+
+// --- LOGOUT ---
 const navLogoutBtn = document.getElementById('navLogoutBtn');
 if (navLogoutBtn) {
     navLogoutBtn.addEventListener('click', async () => {
         if(confirm("Yakin ingin keluar?")) {
             const { error } = await supabase.auth.signOut();
-            if (!error) {
-                window.location.reload();
-            }
+            if (!error) window.location.reload();
         }
     });
 }
-
 
 /* ========================================= */
 /* --- NAVIGASI HALAMAN (SPA) LAMA --- */
