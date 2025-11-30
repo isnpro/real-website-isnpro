@@ -1,0 +1,323 @@
+/* --- Reset & Base Styles --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #fff;
+    padding-bottom: 90px !important; 
+    transition: background-color 0.3s;
+}
+
+body.lock-scroll {
+    overflow: hidden !important;
+    height: 100vh;
+}
+
+/* --- SPA SYSTEM (PENTING) --- */
+.page-section {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.page-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Container --- */
+.container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    background-color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* --- Header Home --- */
+.header {
+    background-color: #205081;
+    padding: 15px;
+    color: white;
+    position: relative;
+    z-index: 100;
+}
+
+.top-bar {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+}
+.logo { font-size: 24px; font-weight: bold; display: flex; align-items: center; }
+.logo i { margin-right: 15px; }
+
+/* HEADER ACTIONS UPDATE */
+.header-actions { display: flex; align-items: center; }
+.profile-pic {
+    width: 36px; height: 36px; border-radius: 50%;
+    object-fit: cover; border: 2px solid rgba(255,255,255,0.5);
+}
+
+.search-bar {
+    background: white; border-radius: 5px; padding: 10px 15px;
+    display: flex; align-items: center; color: #777;
+}
+.search-bar i { margin-right: 10px; }
+.search-bar input { border: none; outline: none; width: 100%; font-size: 14px; }
+
+/* --- Search Overlay --- */
+.search-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 0;
+    background-color: #fff; z-index: 90; overflow-y: auto; overflow-x: hidden;
+    transition: height 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s;
+    opacity: 0; visibility: hidden; -webkit-overflow-scrolling: touch;
+}
+.search-overlay.active { opacity: 1; visibility: visible; padding-bottom: 100px; }
+.search-content-wrapper { padding: 20px; }
+.search-section-title {
+    font-size: 14px; font-weight: bold; color: #205081;
+    margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+}
+.btn-close-search {
+    font-size: 12px; color: #e74c3c; cursor: pointer;
+    background: #ffebeb; padding: 5px 10px; border-radius: 15px;
+}
+.history-list { list-style: none; margin-bottom: 30px; }
+.history-item {
+    display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+    color: #555; font-size: 14px; cursor: pointer;
+}
+.history-item i { margin-right: 10px; color: #ccc; }
+
+/* --- Slider --- */
+.slider-section { background: #fff; padding: 15px; margin-top: 10px; }
+.slider-container {
+    width: 100%; border-radius: 10px; overflow: hidden;
+    position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.slider-wrapper { display: flex; width: 100%; transition: transform 0.5s ease-in-out; }
+.slide { min-width: 100%; height: 160px; background-size: cover; background-position: center; }
+.banner-1 { background-image: url('https://placehold.co/600x250/1e293b/FFF?text=Promo+Spesial+Minggu+Ini&font=roboto'); }
+.banner-2 { background-image: url('https://placehold.co/600x250/b91c1c/FFF?text=Diskon+Mobile+Legends+50%25&font=roboto'); }
+.banner-3 { background-image: url('https://placehold.co/600x250/15803d/FFF?text=Termurah+Se-Indonesia&font=roboto'); }
+.dots-container {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px;
+}
+.dot {
+    width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%; cursor: pointer; transition: background-color 0.3s;
+}
+.dot.active { background-color: #fff; width: 20px; border-radius: 10px; }
+
+/* --- Info Box --- */
+.info-box-section { padding: 15px; background: #fff; }
+.info-box {
+    background: #eaeff2; border: 1px solid #d1d5db; border-radius: 12px;
+    padding: 20px; color: #333;
+}
+.info-box h3 { font-size: 16px; margin-bottom: 15px; font-weight: bold; color: #1f2937; }
+.info-box ol { padding-left: 20px; }
+.info-box li { margin-bottom: 10px; font-size: 14px; line-height: 1.5; color: #4b5563; }
+
+/* --- Tabs & Grids --- */
+.beli-cepat-header {
+    display: flex; align-items: center; background: #fff;
+    margin-top: 10px; border-top: 5px solid #f2f3f7; padding-bottom: 0;
+}
+.tab-active {
+    background: #205081; color: white; padding: 10px 20px; font-weight: bold;
+    font-size: 14px; display: flex; align-items: center;
+    clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%); padding-right: 40px;
+}
+
+/* --- Game Grid Populer --- */
+.game-grid {
+    background: #205081; padding: 15px; display: grid;
+    grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.game-card {
+    background: linear-gradient(135deg, #3a5075, #1e2c45); border-radius: 8px;
+    padding: 10px 5px; text-align: center; display: flex; flex-direction: column;
+    align-items: center; height: 100px; justify-content: center;
+    transition: transform 0.2s; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.game-card:active { transform: scale(0.95); }
+.game-icon {
+    width: 45px; height: 45px; border-radius: 10px; margin-bottom: 8px;
+    object-fit: cover; background-color: transparent;
+}
+.game-name { font-size: 10px; color: white; line-height: 1.2; margin-top: 2px; font-weight: 500; }
+
+/* --- Categories --- */
+.category-wrapper-bg { background-color: #fcfdfe; padding: 15px; padding-bottom: 30px; }
+.category-card {
+    background-color: #eff6ff; border-radius: 8px; padding: 15px;
+    margin-bottom: 15px; border: 1px solid #dbeafe;
+}
+.category-header {
+    display: flex; align-items: center; margin-bottom: 15px; font-weight: bold; font-size: 16px; color: #000;
+}
+.category-header i { margin-right: 8px; font-size: 18px; }
+.icon-akun { color: #8e44ad; } .icon-topup { color: #2980b9; } 
+.icon-joki { color: #e67e22; } .icon-lainnya { color: #27ae60; }
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 5px; }
+.cat-item {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    cursor: pointer; transition: transform 0.2s;
+}
+.cat-item:active { transform: scale(0.95); }
+.cat-img {
+    width: 50px; height: 50px; border-radius: 12px; margin-bottom: 8px;
+    object-fit: cover; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.cat-name { font-size: 11px; color: #333; line-height: 1.3; }
+
+/* --- Payment --- */
+.payment-section {
+    background-color: #f8fafc; margin: 0 15px 50px 15px; padding: 20px;
+    border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+.payment-header {
+    font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 15px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    text-transform: uppercase;
+}
+.payment-header i { color: #2196f3; }
+.payment-icons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.pay-logo { height: 25px; width: auto; object-fit: contain; filter: grayscale(20%); opacity: 0.9; }
+
+/* --- HALAMAN DETAIL --- */
+.detail-header {
+    background: #205081;
+    padding: 15px;
+    color: white;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-back {
+    margin-right: 20px;
+    font-size: 18px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.btn-back:active { background: rgba(255,255,255,0.2); }
+.detail-title { font-size: 18px; font-weight: bold; flex-grow: 1; }
+.detail-content { padding: 20px; min-height: 80vh; background: #f9f9f9; }
+.empty-state-placeholder {
+    text-align: center; color: #999; margin-top: 50px; border: 2px dashed #ddd;
+    padding: 30px; border-radius: 10px;
+}
+
+/* --- BOTTOM NAVIGATION BAR --- */
+.bottom-navbar {
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
+    background-color: #fff; display: flex; justify-content: space-around;
+    align-items: center; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 999; border-top-left-radius: 15px; border-top-right-radius: 15px;
+}
+
+.nav-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #333333; font-size: 10px; cursor: pointer; width: 20%;
+    position: relative; transition: color 0.3s;
+}
+
+.nav-item i { font-size: 18px; margin-bottom: 4px; }
+.nav-item.active { color: #000000; font-weight: bold; }
+.nav-item.center-item { overflow: visible; }
+
+.floating-circle {
+    width: 50px; height: 50px; background-color: #fff; border-radius: 50%;
+    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+    display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1); border: 4px solid #fff;
+}
+.floating-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.center-item span { margin-top: 22px; }
+.nav-item:active { transform: scale(0.95); }
+
+
+/* ========================================= */
+/* --- AUTHENTICATION STYLES (BARU) --- */
+/* ========================================= */
+
+.btn-login-header {
+    background: #ffeb3b;
+    color: #205081;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.profile-wrapper { display: flex; align-items: center; gap: 10px; }
+
+/* Modal Overlay */
+.auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); z-index: 2000;
+    display: none; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px); animation: fadeIn 0.3s;
+}
+.auth-overlay.active { display: flex; }
+
+/* Kotak Tengah */
+.auth-box {
+    background: white; width: 90%; max-width: 400px; padding: 30px;
+    border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    position: relative; text-align: center; animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-auth {
+    position: absolute; top: 10px; right: 15px; font-size: 24px;
+    cursor: pointer; color: #aaa;
+}
+
+.auth-title { color: #205081; font-weight: bold; font-size: 24px; margin-bottom: 5px; }
+.auth-subtitle { color: #777; font-size: 12px; margin-bottom: 25px; }
+.input-group { margin-bottom: 15px; }
+
+.input-group input {
+    width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+    background: #f9f9f9; font-size: 14px; outline: none; transition: border 0.3s;
+}
+.input-group input:focus { border-color: #205081; background: #fff; }
+
+.btn-auth-action {
+    width: 100%; background: #205081; color: white; border: none;
+    padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+    font-size: 14px; margin-top: 10px; transition: background 0.3s;
+}
+.btn-auth-action:hover { background: #1a4066; }
+
+.auth-footer { margin-top: 20px; font-size: 12px; color: #666; }
+.auth-footer span { color: #205081; font-weight: bold; cursor: pointer; text-decoration: underline; }
