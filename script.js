@@ -2,15 +2,19 @@
 /* --- KONFIGURASI SUPABASE --- */
 /* ========================================= */
 
-// 1. Masukkan URL dan ANON KEY dari Dashboard Supabase Anda
+// 1. Masukkan URL dan ANON KEY dari Dashboard Supabase Anda di sini
 const supabaseUrl = 'https://qxjefdaojlctmlktztkt.supabase.co'; 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4amVmZGFvamxjdG1sa3R6dGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MjAxMDcsImV4cCI6MjA4MDA5NjEwN30.vFpaoqAqSBOo1WiUECxK3uPApHfv60plfJxWrv36pCk'; 
 
 // Inisialisasi Client
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+// Variabel Sementara
+let tempEmailForVerification = "";
+
+
 /* ========================================= */
-/* --- AUTH SYSTEM LOGIC (LENGKAP & FIX) --- */
+/* --- AUTH SYSTEM LOGIC (LENGKAP) --- */
 /* ========================================= */
 
 // Cek Status Login Saat Load
@@ -18,7 +22,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const { data: { user } } = await supabase.auth.getUser();
     updateUIBasedOnAuth(user);
     
-    // Logic SPA (Navigasi Halaman)
+    // Logic SPA
     const hash = window.location.hash.substring(1);
     if (hash) renderPage(hash, null);
     else {
@@ -36,11 +40,7 @@ function updateUIBasedOnAuth(user) {
     if (user) {
         if(loginBtn) loginBtn.style.display = 'none';
         if(profileIcon) profileIcon.style.display = 'flex';
-        // Tutup modal jika user sudah login (kecuali sedang proses reset password)
-        // Kita biarkan logika reset password menangani penutupan modal sendiri
-        if(authModal && !localStorage.getItem('is_resetting_password')) {
-            authModal.classList.remove('active');
-        }
+        if(authModal) authModal.classList.remove('active');
     } else {
         if(loginBtn) loginBtn.style.display = 'block';
         if(profileIcon) profileIcon.style.display = 'none';
@@ -60,8 +60,6 @@ function toggleAuthModal(show) {
         switchAuthMode('login'); // Default ke login
     } else {
         modal.classList.remove('active');
-        // Bersihkan session storage jika modal ditutup paksa
-        localStorage.removeItem('is_resetting_password');
     }
 }
 
@@ -92,20 +90,12 @@ function switchAuthMode(mode) {
     });
 
     // Tampilkan form yang dipilih
-    const target = document.getElementById(getFormIdByMode(mode));
-    if(target) target.style.display = 'block';
-}
-
-function getFormIdByMode(mode) {
-    switch(mode) {
-        case 'login': return 'loginForm';
-        case 'register': return 'registerForm';
-        case 'verify': return 'verifyForm';
-        case 'forgot': return 'forgotPasswordForm';
-        case 'recovery-code': return 'recoveryCodeForm';
-        case 'new-password': return 'newPasswordForm';
-        default: return 'loginForm';
-    }
+    if (mode === 'login') document.getElementById('loginForm').style.display = 'block';
+    else if (mode === 'register') document.getElementById('registerForm').style.display = 'block';
+    else if (mode === 'verify') document.getElementById('verifyForm').style.display = 'block';
+    else if (mode === 'forgot') document.getElementById('forgotPasswordForm').style.display = 'block';
+    else if (mode === 'recovery-code') document.getElementById('recoveryCodeForm').style.display = 'block';
+    else if (mode === 'new-password') document.getElementById('newPasswordForm').style.display = 'block';
 }
 
 // --- 1. LOGIN ---
@@ -120,10 +110,7 @@ async function handleLogin() {
     });
 
     if (error) alert("Gagal Login: " + error.message);
-    else {
-        updateUIBasedOnAuth(data.user);
-        toggleAuthModal(false); // Tutup modal setelah login sukses
-    }
+    else updateUIBasedOnAuth(data.user);
 }
 
 // --- 2. REGISTER ---
@@ -145,9 +132,7 @@ async function handleRegister() {
     if (error) {
         alert("Gagal Daftar: " + error.message);
     } else {
-        // [FIX] Simpan email ke localStorage agar tidak hilang saat refresh
-        localStorage.setItem('register_email', email);
-        
+        tempEmailForVerification = email;
         alert("Kode verifikasi dikirim ke: " + email);
         switchAuthMode('verify');
     }
@@ -156,23 +141,17 @@ async function handleRegister() {
 // --- 3. VERIFIKASI OTP (REGISTER) ---
 async function handleVerifyOtp() {
     const code = document.getElementById('otpCode').value;
-    // [FIX] Ambil email dari localStorage
-    const email = localStorage.getItem('register_email');
-
-    if(!email) { alert("Sesi habis, silakan daftar ulang."); switchAuthMode('register'); return; }
     if(!code) { alert("Masukkan kode!"); return; }
 
     const { data, error } = await supabase.auth.verifyOtp({
-        email: email, token: code, type: 'signup'
+        email: tempEmailForVerification, token: code, type: 'signup'
     });
 
     if (error) {
         alert("Kode Salah/Kadaluarsa: " + error.message);
     } else {
         alert("Verifikasi Berhasil! Anda telah login.");
-        localStorage.removeItem('register_email'); // Bersihkan storage
         updateUIBasedOnAuth(data.user);
-        toggleAuthModal(false);
     }
 }
 
@@ -181,9 +160,7 @@ async function handleForgotPasswordRequest() {
     const email = document.getElementById('forgotEmail').value;
     if (!email) { alert("Masukkan email Anda!"); return; }
 
-    // [FIX] Simpan email ke localStorage (KUNCI PERBAIKANNYA ADA DISINI)
-    localStorage.setItem('reset_email', email);
-    localStorage.setItem('is_resetting_password', 'true'); // Penanda agar modal tidak nutup otomatis
+    tempEmailForVerification = email;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email);
 
@@ -191,33 +168,22 @@ async function handleForgotPasswordRequest() {
         alert("Gagal kirim kode: " + error.message);
     } else {
         alert("Kode dikirim ke: " + email);
-        switchAuthMode('recovery-code'); 
+        switchAuthMode('recovery-code'); // Pindah ke input kode
     }
 }
 
 // --- 5. LUPA PASSWORD: TAHAP 2 (CEK KODE) ---
 async function handleVerifyRecoveryCode() {
     const otp = document.getElementById('recoveryOtpCode').value;
-    // [FIX] Ambil email dari localStorage (Bukan variabel global)
-    const email = localStorage.getItem('reset_email');
-
     if (!otp) { alert("Masukkan kode OTP!"); return; }
-    if (!email) { 
-        alert("Sesi kadaluarsa/Refresh terjadi. Silakan minta kode ulang."); 
-        switchAuthMode('forgot'); 
-        return; 
-    }
 
-    // Tipe harus 'recovery' untuk reset password
     const { data, error } = await supabase.auth.verifyOtp({
-        email: email, token: otp, type: 'recovery'
+        email: tempEmailForVerification, token: otp, type: 'recovery'
     });
 
     if (error) {
-        console.error("Error verify:", error);
-        alert("Kode Salah/Kadaluarsa. Pastikan kode 6 digit terbaru.");
+        alert("Kode Salah/Kadaluarsa: " + error.message);
     } else {
-        // Sukses verify = User Login Sementara
         // Pindah ke input password baru
         switchAuthMode('new-password'); 
     }
@@ -231,23 +197,15 @@ async function handleSaveNewPassword() {
     if (!newPass || !confirmPass) { alert("Isi password baru!"); return; }
     if (newPass !== confirmPass) { alert("Password tidak cocok!"); return; }
 
-    // Karena di tahap sebelumnya (verifyOtp) user sudah "Login",
-    // kita cukup panggil updateUser.
     const { error } = await supabase.auth.updateUser({ password: newPass });
 
     if (error) {
         alert("Gagal menyimpan password: " + error.message);
     } else {
         alert("Sukses! Password telah diganti. Silakan login kembali.");
-        
-        // Bersihkan jejak reset
-        localStorage.removeItem('reset_email');
-        localStorage.removeItem('is_resetting_password');
-        
-        // Logout user agar mereka login ulang dengan password baru (Security Best Practice)
         await supabase.auth.signOut();
         
-        // Reset Form & UI
+        // Reset Form
         document.getElementById('recoveryOtpCode').value = '';
         document.getElementById('newResetPassword').value = '';
         document.getElementById('confirmResetPassword').value = '';
@@ -268,7 +226,7 @@ if (navLogoutBtn) {
 }
 
 /* ========================================= */
-/* --- NAVIGASI HALAMAN (SPA) --- */
+/* --- NAVIGASI HALAMAN (SPA) LAMA --- */
 /* ========================================= */
 const homeSection = document.getElementById('home-page');
 const detailSection = document.getElementById('detail-page');
@@ -281,30 +239,28 @@ function goToPage(pageId, titleName) {
 }
 
 function renderPage(pageId, titleName) {
-    if(homeSection) homeSection.classList.remove('active');
-    if(detailSection) detailSection.classList.add('active');
+    homeSection.classList.remove('active');
+    detailSection.classList.add('active');
     window.scrollTo(0, 0);
 
-    if (pageTitle) {
-        if (titleName) {
-            pageTitle.innerText = titleName;
-        } else {
-            pageTitle.innerText = localStorage.getItem('currentTitle') || 'Detail Kategori';
-        }
+    if (titleName) {
+        pageTitle.innerText = titleName;
+    } else {
+        pageTitle.innerText = localStorage.getItem('currentTitle') || 'Detail Kategori';
     }
 }
 
 function goBack() {
     history.pushState("", document.title, window.location.pathname + window.location.search);
-    if(detailSection) detailSection.classList.remove('active');
-    if(homeSection) homeSection.classList.add('active');
+    detailSection.classList.remove('active');
+    homeSection.classList.add('active');
 }
 
 window.addEventListener('popstate', () => {
     const hash = window.location.hash.substring(1);
     if (!hash) {
-        if(detailSection) detailSection.classList.remove('active');
-        if(homeSection) homeSection.classList.add('active');
+        detailSection.classList.remove('active');
+        homeSection.classList.add('active');
     } else {
         renderPage(hash, null);
     }
