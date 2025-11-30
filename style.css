@@ -276,48 +276,90 @@ body.lock-scroll {
 
 .profile-wrapper { display: flex; align-items: center; gap: 10px; }
 
-/* Modal Overlay */
+/* ========================================= */
+/* --- AUTHENTICATION STYLES (REVISED) --- */
+/* ========================================= */
+
 .auth-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.6); z-index: 2000;
     display: none; justify-content: center; align-items: center;
-    backdrop-filter: blur(5px); animation: fadeIn 0.3s;
+    backdrop-filter: blur(8px); animation: fadeIn 0.3s;
 }
 .auth-overlay.active { display: flex; }
 
-/* Kotak Tengah */
 .auth-box {
-    background: white; width: 90%; max-width: 400px; padding: 30px;
-    border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    position: relative; text-align: center; animation: slideUp 0.3s ease-out;
+    background: #ffffff; width: 90%; max-width: 380px; padding: 40px 30px;
+    border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    position: relative; text-align: center; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
+.close-auth {
+    position: absolute; top: 15px; right: 20px; font-size: 28px;
+    cursor: pointer; color: #ccc; transition: color 0.3s;
+}
+.close-auth:hover { color: #e74c3c; }
+
+.auth-title { color: #205081; font-weight: 800; font-size: 24px; margin-bottom: 5px; letter-spacing: -0.5px; }
+.auth-subtitle { color: #9ca3af; font-size: 13px; margin-bottom: 25px; }
+
+/* Icon Circle Header */
+.icon-circle-top {
+    width: 60px; height: 60px; background: #e3f2fd; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 15px auto; color: #205081; font-size: 24px;
+    box-shadow: 0 5px 15px rgba(32, 80, 129, 0.1);
+}
+
+/* Input Styles with Icons */
+.input-with-icon {
+    position: relative; margin-bottom: 15px;
+}
+.input-with-icon i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: #9ca3af; font-size: 16px; transition: color 0.3s;
+}
+.input-with-icon input {
+    width: 100%; padding: 14px 15px 14px 45px;
+    border: 1px solid #e5e7eb; border-radius: 12px;
+    background: #f9fafb; font-size: 14px; outline: none;
+    transition: all 0.3s; color: #333;
+}
+.input-with-icon input:focus {
+    border-color: #205081; background: #fff;
+    box-shadow: 0 0 0 4px rgba(32, 80, 129, 0.1);
+}
+.input-with-icon input:focus + i, 
+.input-with-icon input:focus ~ i { /* Selektor untuk icon ketika input focus */
+    color: #205081;
+}
+
+.input-otp {
+    text-align: center; letter-spacing: 8px; font-weight: bold; font-size: 18px;
+}
+
+/* Buttons */
+.btn-auth-action {
+    width: 100%; background: linear-gradient(135deg, #205081, #1e3a8a);
+    color: white; border: none; padding: 14px; border-radius: 12px;
+    font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(32, 80, 129, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-auth-action:hover {
+    box-shadow: 0 6px 15px rgba(32, 80, 129, 0.4);
+}
+.btn-auth-action:active { transform: scale(0.97); }
+
+/* Links */
+.forgot-link {
+    color: #6b7280; font-size: 12px; cursor: pointer; transition: color 0.2s;
+}
+.forgot-link:hover { color: #e74c3c; text-decoration: underline; }
+
+.mt-2 { margin-top: 20px; font-size: 13px; color: #6b7280; }
 
 @keyframes slideUp {
     from { transform: translateY(50px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
-
-.close-auth {
-    position: absolute; top: 10px; right: 15px; font-size: 24px;
-    cursor: pointer; color: #aaa;
-}
-
-.auth-title { color: #205081; font-weight: bold; font-size: 24px; margin-bottom: 5px; }
-.auth-subtitle { color: #777; font-size: 12px; margin-bottom: 25px; }
-.input-group { margin-bottom: 15px; }
-
-.input-group input {
-    width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
-    background: #f9f9f9; font-size: 14px; outline: none; transition: border 0.3s;
-}
-.input-group input:focus { border-color: #205081; background: #fff; }
-
-.btn-auth-action {
-    width: 100%; background: #205081; color: white; border: none;
-    padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
-    font-size: 14px; margin-top: 10px; transition: background 0.3s;
-}
-.btn-auth-action:hover { background: #1a4066; }
-
-.auth-footer { margin-top: 20px; font-size: 12px; color: #666; }
-.auth-footer span { color: #205081; font-weight: bold; cursor: pointer; text-decoration: underline; }

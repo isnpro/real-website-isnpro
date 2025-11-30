@@ -275,51 +275,123 @@
             <span class="close-auth" onclick="toggleAuthModal(false)">&times;</span>
             
             <div id="loginForm">
-                <h2 class="auth-title">Maishipro</h2>
-                <p class="auth-subtitle">Silakan masuk ke akun Anda</p>
-                <div class="input-group">
+                <div class="icon-circle-top">
+                    <i class="fas fa-user-lock"></i>
+                </div>
+                <h2 class="auth-title">Selamat Datang</h2>
+                <p class="auth-subtitle">Masuk untuk melanjutkan transaksi</p>
+                
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
                     <input type="email" id="loginEmail" placeholder="Email Address" required>
                 </div>
-                <div class="input-group">
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
                     <input type="password" id="loginPassword" placeholder="Password" required>
                 </div>
-                <button class="btn-auth-action" onclick="handleLogin()">LOGIN</button>
-                <div class="auth-footer">
-                    Tidak memiliki akun? <span onclick="switchAuthMode('register')">Daftar</span>
+                
+                <div class="auth-links" style="text-align: right; margin-bottom: 15px;">
+                    <span class="forgot-link" onclick="switchAuthMode('forgot')">Lupa Password?</span>
+                </div>
+
+                <button class="btn-auth-action" onclick="handleLogin()">MASUK SEKARANG</button>
+                
+                <div class="auth-footer mt-2">
+                    Belum punya akun? <span onclick="switchAuthMode('register')" style="color:#205081; font-weight:bold; cursor:pointer;">Daftar Disini</span>
                 </div>
             </div>
 
             <div id="registerForm" style="display: none;">
-                <h2 class="auth-title">Maishipro</h2>
-                <p class="auth-subtitle">Buat akun baru</p>
-                <div class="input-group">
+                <h2 class="auth-title">Buat Akun</h2>
+                <p class="auth-subtitle">Gabung bersama Maishipro</p>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
                     <input type="text" id="regUsername" placeholder="Username" required>
                 </div>
-                <div class="input-group">
-                    <input type="text" id="regPhone" placeholder="Nomor WhatsApp" required>
+                <div class="input-with-icon">
+                    <i class="fab fa-whatsapp"></i>
+                    <input type="number" id="regPhone" placeholder="Nomor WhatsApp" required>
                 </div>
-                <div class="input-group">
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
                     <input type="email" id="regEmail" placeholder="Email Address" required>
                 </div>
-                <div class="input-group">
-                    <input type="password" id="regPassword" placeholder="Password Utama" required>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="regPassword" placeholder="Password" required>
                 </div>
-                <div class="input-group">
+                <div class="input-with-icon">
+                    <i class="fas fa-check-circle"></i>
                     <input type="password" id="regConfirmPassword" placeholder="Ulangi Password" required>
                 </div>
-                <button class="btn-auth-action" onclick="handleRegister()">DAFTAR</button>
-                <div class="auth-footer">
-                    Sudah punya akun? <span onclick="switchAuthMode('login')">Login</span>
+
+                <button class="btn-auth-action" onclick="handleRegister()">DAFTAR AKUN</button>
+                
+                <div class="auth-footer mt-2">
+                    Sudah punya akun? <span onclick="switchAuthMode('login')" style="color:#205081; font-weight:bold; cursor:pointer;">Login</span>
                 </div>
             </div>
 
             <div id="verifyForm" style="display: none;">
-                <h2 class="auth-title">Verifikasi Email</h2>
-                <p class="auth-subtitle">Masukkan kode 6 digit yang dikirim ke email Anda.</p>
-                <div class="input-group">
-                    <input type="text" id="otpCode" placeholder="Kode OTP (Cth: 123456)" style="text-align:center; letter-spacing:4px; font-weight:bold;">
+                <div class="icon-circle-top">
+                    <i class="fas fa-envelope-open-text"></i>
                 </div>
+                <h2 class="auth-title">Verifikasi Email</h2>
+                <p class="auth-subtitle">Masukkan 6 digit kode dari email Anda.</p>
+                
+                <div class="input-with-icon">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="otpCode" placeholder="______" class="input-otp" maxlength="6">
+                </div>
+                
                 <button class="btn-auth-action" onclick="handleVerifyOtp()">VERIFIKASI</button>
+                <div class="auth-footer mt-2">
+                    <span onclick="switchAuthMode('register')" style="cursor:pointer; color:#777;">Kembali</span>
+                </div>
+            </div>
+
+            <div id="forgotPasswordForm" style="display: none;">
+                <div class="icon-circle-top">
+                    <i class="fas fa-question"></i>
+                </div>
+                <h2 class="auth-title">Lupa Password</h2>
+                <p class="auth-subtitle">Masukkan email terdaftar untuk menerima kode.</p>
+                
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="forgotEmail" placeholder="Email Terdaftar" required>
+                </div>
+
+                <button class="btn-auth-action" onclick="handleForgotPasswordRequest()">KIRIM KODE</button>
+                
+                <div class="auth-footer mt-2">
+                    <span onclick="switchAuthMode('login')" style="color:#205081; font-weight:bold; cursor:pointer;">Kembali ke Login</span>
+                </div>
+            </div>
+
+            <div id="resetPasswordForm" style="display: none;">
+                <div class="icon-circle-top">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2 class="auth-title">Reset Password</h2>
+                <p class="auth-subtitle">Masukkan kode OTP dan password baru.</p>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="resetOtpCode" placeholder="Kode OTP (Cth: 123456)" class="input-otp" maxlength="6">
+                </div>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="newPassword" placeholder="Password Baru">
+                </div>
+                <div class="input-with-icon">
+                    <i class="fas fa-check-circle"></i>
+                    <input type="password" id="confirmNewPassword" placeholder="Ulangi Password Baru">
+                </div>
+
+                <button class="btn-auth-action" onclick="handleResetPasswordFinal()">UBAH PASSWORD</button>
             </div>
 
         </div>
