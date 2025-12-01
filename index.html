@@ -20,10 +20,8 @@
                         <i class="fas fa-bars"></i> Maishipro <i class="fas fa-cube" style="margin-left:5px; font-size:16px;"></i>
                     </div>
                     <div class="header-actions">
-                        <button id="btnLoginMain" class="btn-login-header">Login / Daftar</button>
-
-                        <div id="userProfileIcon" class="profile-wrapper" style="display: none;">
-                            <img src="https://api.deline.web.id/76NssFHmcI.png" alt="Profile" class="profile-pic" id="headerProfileImg">
+                        <div id="header-auth-section">
+                            <span class="btn-login-header" onclick="openAuthModal()">Masuk / Daftar</span>
                         </div>
                     </div>
                 </div>
@@ -223,7 +221,7 @@
             </section>
 
             <nav class="bottom-navbar">
-                <div class="nav-item active">
+                <div class="nav-item active" onclick="goToPage('home-page', '')">
                     <i class="fas fa-home"></i>
                     <span>Home</span>
                 </div>
@@ -233,9 +231,9 @@
                     <span>Transaksi</span>
                 </div>
                 
-                <div class="nav-item center-item">
+                <div class="nav-item center-item" onclick="handleProfileClick()">
                     <div class="floating-circle">
-                        <img src="https://api.deline.web.id/76NssFHmcI.png" alt="Profile" id="navProfileImg">
+                         <img src="https://api.deline.web.id/76NssFHmcI.png" alt="Profile" id="nav-profile-img">
                     </div>
                     <span>Profile</span>
                 </div>
@@ -246,8 +244,8 @@
                 </div>
                 
                 <div class="nav-item">
-                    <i class="fas fa-sign-out-alt" id="navLogoutBtn"></i>
-                    <span>Keluar</span>
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
                 </div>
             </nav>
 
@@ -268,157 +266,90 @@
             </div>
         </div>
 
+        <div id="profile-page" class="page-section">
+            <div class="detail-header">
+                <div class="btn-back" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </div>
+                <div class="detail-title">Profil Saya</div>
+            </div>
+            <div class="detail-content">
+                <div style="max-width:400px; margin:20px auto; background:#fff; padding:25px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:center;">
+                    <img src="https://api.deline.web.id/76NssFHmcI.png" style="width:80px; height:80px; border-radius:50%; margin-bottom:15px; border:3px solid #f0f0f0;">
+                    <h3 id="user-email-display" style="margin-bottom:5px;">user@email.com</h3>
+                    <p style="color:#777; font-size:12px; margin-bottom:20px;">Member Maishipro</p>
+                    <button class="btn-auth-primary" style="background:#dc2626;" onclick="handleLogout()">Keluar (Logout)</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <div id="authModal" class="auth-overlay">
-        <div class="auth-box">
-            <span class="close-auth" onclick="toggleAuthModal(false)">&times;</span>
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAuthModal()">&times;</span>
             
-            <div id="loginForm">
-                <div class="icon-circle-top">
-                    <i class="fas fa-user-lock"></i>
-                </div>
-                <h2 class="auth-title">Selamat Datang</h2>
-                <p class="auth-subtitle">Masuk untuk melanjutkan transaksi</p>
-                
-                <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon-left"></i>
-                    <input type="email" id="loginEmail" placeholder="Email Address" required>
-                </div>
-                <div class="input-with-icon">
-                    <i class="fas fa-lock input-icon-left"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                    <i class="fas fa-eye-slash password-toggle" onclick="togglePasswordVisibility('loginPassword', this)"></i>
-                </div>
-                
-                <div class="auth-links" style="text-align: right; margin-bottom: 15px;">
-                    <span class="forgot-link" onclick="switchAuthMode('forgot')">Lupa Password?</span>
-                </div>
+            <div id="auth-alert" class="auth-alert"></div>
 
-                <button class="btn-auth-action" onclick="handleLogin()">MASUK SEKARANG</button>
-                
-                <div class="auth-footer mt-2">
-                    Belum punya akun? <span onclick="switchAuthMode('register')" style="color:#205081; font-weight:bold; cursor:pointer;">Daftar Disini</span>
+            <div id="auth-header-title" class="auth-header-title">Masuk Akun</div>
+
+            <div id="form-login">
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" class="auth-input" placeholder="Masukkan email">
+                </div>
+                <div class="auth-form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" class="auth-input" placeholder="Masukkan password">
+                </div>
+                <button class="btn-auth-primary" onclick="handleLogin()">Masuk</button>
+                <div class="auth-links">
+                    <p>Belum punya akun? <a onclick="switchAuthMode('register')">Daftar sekarang</a></p>
+                    <p style="margin-top:10px;"><a onclick="switchAuthMode('forgot')">Lupa password?</a></p>
                 </div>
             </div>
 
-            <div id="registerForm" style="display: none;">
-                <h2 class="auth-title">Buat Akun</h2>
-                <p class="auth-subtitle">Gabung bersama Maishipro</p>
-
-                <div class="input-with-icon">
-                    <i class="fas fa-user input-icon-left"></i>
-                    <input type="text" id="regUsername" placeholder="Username" required>
+            <div id="form-register" style="display:none;">
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" class="auth-input" placeholder="Masukkan email aktif">
                 </div>
-                <div class="input-with-icon">
-                    <i class="fab fa-whatsapp input-icon-left"></i>
-                    <input type="number" id="regPhone" placeholder="Nomor WhatsApp" required>
+                <div class="auth-form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-pass" class="auth-input" placeholder="Minimal 6 karakter">
                 </div>
-                <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon-left"></i>
-                    <input type="email" id="regEmail" placeholder="Email Address" required>
-                </div>
-                
-                <div class="input-with-icon">
-                    <i class="fas fa-lock input-icon-left"></i>
-                    <input type="password" id="regPassword" placeholder="Password" required>
-                    <i class="fas fa-eye-slash password-toggle" onclick="togglePasswordVisibility('regPassword', this)"></i>
-                </div>
-                
-                <div class="input-with-icon">
-                    <i class="fas fa-check-circle input-icon-left"></i>
-                    <input type="password" id="regConfirmPassword" placeholder="Ulangi Password" required>
-                    <i class="fas fa-eye-slash password-toggle" onclick="togglePasswordVisibility('regConfirmPassword', this)"></i>
-                </div>
-
-                <button class="btn-auth-action" onclick="handleRegister()">DAFTAR AKUN</button>
-                
-                <div class="auth-footer mt-2">
-                    Sudah punya akun? <span onclick="switchAuthMode('login')" style="color:#205081; font-weight:bold; cursor:pointer;">Login</span>
+                <button class="btn-auth-primary" onclick="handleRegister()">Daftar Akun</button>
+                <div class="auth-links">
+                    <p>Sudah punya akun? <a onclick="switchAuthMode('login')">Masuk disini</a></p>
                 </div>
             </div>
 
-            <div id="verifyForm" style="display: none;">
-                <div class="icon-circle-top">
-                    <i class="fas fa-envelope-open-text"></i>
+            <div id="form-forgot" style="display:none;">
+                <p style="margin-bottom:15px; font-size:13px; color:#666; text-align:center;">
+                    Masukkan email Anda, kami akan mengirimkan link untuk mereset password.
+                </p>
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="forgot-email" class="auth-input" placeholder="Masukkan email">
                 </div>
-                <h2 class="auth-title">Verifikasi Email</h2>
-                <p class="auth-subtitle">Masukkan 6 digit kode dari email Anda.</p>
-                
-                <div class="input-with-icon">
-                    <i class="fas fa-key input-icon-left"></i>
-                    <input type="text" id="otpCode" placeholder="______" class="input-otp" maxlength="6">
-                </div>
-                
-                <button class="btn-auth-action" onclick="handleVerifyOtp()">VERIFIKASI</button>
-                <div class="auth-footer mt-2">
-                    <span onclick="switchAuthMode('register')" style="cursor:pointer; color:#777;">Kembali</span>
+                <button class="btn-auth-primary" onclick="handleForgotPass()">Kirim Link Reset</button>
+                <div class="auth-links">
+                    <p><a onclick="switchAuthMode('login')">Kembali ke Login</a></p>
                 </div>
             </div>
 
-            <div id="forgotPasswordForm" style="display: none;">
-                <div class="icon-circle-top">
-                    <i class="fas fa-question"></i>
+             <div id="form-update-pass" style="display:none;">
+                <div class="auth-form-group">
+                    <label>Password Baru</label>
+                    <input type="password" id="new-pass" class="auth-input" placeholder="Masukkan password baru">
                 </div>
-                <h2 class="auth-title">Lupa Password?</h2>
-                <p class="auth-subtitle">Masukkan email terdaftar untuk menerima kode.</p>
-                
-                <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon-left"></i>
-                    <input type="email" id="forgotEmail" placeholder="Email Terdaftar" required>
-                </div>
-
-                <button class="btn-auth-action" onclick="handleForgotPasswordRequest()">KIRIM KODE</button>
-                
-                <div class="auth-footer mt-2">
-                    <span onclick="switchAuthMode('login')" style="color:#205081; font-weight:bold; cursor:pointer;">Kembali ke Login</span>
-                </div>
-            </div>
-
-            <div id="recoveryCodeForm" style="display: none;">
-                <div class="icon-circle-top">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h2 class="auth-title">Verifikasi Kode</h2>
-                <p class="auth-subtitle">Masukkan 6 digit kode yang dikirim ke email.</p>
-
-                <div class="input-with-icon">
-                    <i class="fas fa-key input-icon-left"></i>
-                    <input type="text" id="recoveryOtpCode" placeholder="Kode OTP (Cth: 123456)" class="input-otp" maxlength="6">
-                </div>
-
-                <button class="btn-auth-action" onclick="handleVerifyRecoveryCode()">LANJUTKAN</button>
-                
-                <div class="auth-footer mt-2">
-                    <span onclick="switchAuthMode('forgot')" style="cursor:pointer; color:#777;">Kirim Ulang Kode</span>
-                </div>
-            </div>
-
-            <div id="newPasswordForm" style="display: none;">
-                <div class="icon-circle-top">
-                    <i class="fas fa-unlock-alt"></i>
-                </div>
-                <h2 class="auth-title">Password Baru</h2>
-                <p class="auth-subtitle">Silakan buat password baru Anda.</p>
-
-                <div class="input-with-icon">
-                    <i class="fas fa-lock input-icon-left"></i>
-                    <input type="password" id="newResetPassword" placeholder="Password Baru">
-                    <i class="fas fa-eye-slash password-toggle" onclick="togglePasswordVisibility('newResetPassword', this)"></i>
-                </div>
-                
-                <div class="input-with-icon">
-                    <i class="fas fa-check-circle input-icon-left"></i>
-                    <input type="password" id="confirmResetPassword" placeholder="Ulangi Password Baru">
-                    <i class="fas fa-eye-slash password-toggle" onclick="togglePasswordVisibility('confirmResetPassword', this)"></i>
-                </div>
-
-                <button class="btn-auth-action" onclick="handleSaveNewPassword()">SIMPAN PASSWORD</button>
+                <button class="btn-auth-primary" onclick="handleUpdatePass()">Simpan Password</button>
             </div>
 
         </div>
     </div>
 
     <script src="script.js"></script>
+
 </body>
 </html>

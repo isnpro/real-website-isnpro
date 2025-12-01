@@ -1,275 +1,244 @@
-/* ========================================= */
-/* --- KONFIGURASI SUPABASE --- */
-/* ========================================= */
+// --- KONFIGURASI SUPABASE ---
+// GANTI DENGAN URL DAN KEY DARI PROJECT SUPABASE ANDA
+const SUPABASE_URL = 'https://xxxxxxxxxxxx.supabase.co'; 
+const SUPABASE_KEY = 'eyJxhGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....'; // Ini Anon Key
 
-// 1. Masukkan URL dan ANON KEY dari Dashboard Supabase Anda di sini
-const supabaseUrl = 'https://gdrkjtgjunwuxptjmola.supabase.co'; 
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkcmtqdGdqdW53dXhwdGptb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NDEyMTYsImV4cCI6MjA4MDExNzIxNn0.IUXODaaFbbKMFodB_HJXOxZ9m2lHQ2iy3wNrwa7sExI'; 
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Inisialisasi Client
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-// Variabel Sementara
-let tempEmailForVerification = "";
-
-
-/* ========================================= */
-/* --- AUTH SYSTEM LOGIC (LENGKAP) --- */
-/* ========================================= */
-
-// Cek Status Login Saat Load
-window.addEventListener('DOMContentLoaded', async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    updateUIBasedOnAuth(user);
-    
-    // Logic SPA
-    const hash = window.location.hash.substring(1);
-    if (hash) renderPage(hash, null);
-    else {
-        const home = document.getElementById('home-page');
-        if(home) home.classList.add('active');
-    }
-});
-
-// Update Tampilan (Sembunyikan Login, Munculkan Profile)
-function updateUIBasedOnAuth(user) {
-    const loginBtn = document.getElementById('btnLoginMain');
-    const profileIcon = document.getElementById('userProfileIcon');
-    const authModal = document.getElementById('authModal');
-    
-    if (user) {
-        if(loginBtn) loginBtn.style.display = 'none';
-        if(profileIcon) profileIcon.style.display = 'flex';
-        if(authModal) authModal.classList.remove('active');
-    } else {
-        if(loginBtn) loginBtn.style.display = 'block';
-        if(profileIcon) profileIcon.style.display = 'none';
-    }
-}
-
-// Buka/Tutup Modal
-const btnLoginMain = document.getElementById('btnLoginMain');
-if (btnLoginMain) {
-    btnLoginMain.addEventListener('click', () => toggleAuthModal(true));
-}
-
-function toggleAuthModal(show) {
-    const modal = document.getElementById('authModal');
-    if (show) {
-        modal.classList.add('active');
-        switchAuthMode('login'); // Default ke login
-    } else {
-        modal.classList.remove('active');
-    }
-}
-
-// --- FUNGSI TOGGLE PASSWORD (MATA) ---
-function togglePasswordVisibility(inputId, iconElement) {
-    const input = document.getElementById(inputId);
-    if (input.type === "password") {
-        input.type = "text";
-        iconElement.classList.remove('fa-eye-slash');
-        iconElement.classList.add('fa-eye');
-    } else {
-        input.type = "password";
-        iconElement.classList.remove('fa-eye');
-        iconElement.classList.add('fa-eye-slash');
-    }
-}
-
-// --- SISTEM PERPINDAHAN MODE FORM ---
-function switchAuthMode(mode) {
-    // Sembunyikan semua form
-    const forms = [
-        'loginForm', 'registerForm', 'verifyForm', 
-        'forgotPasswordForm', 'recoveryCodeForm', 'newPasswordForm'
-    ];
-    forms.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = 'none';
-    });
-
-    // Tampilkan form yang dipilih
-    if (mode === 'login') document.getElementById('loginForm').style.display = 'block';
-    else if (mode === 'register') document.getElementById('registerForm').style.display = 'block';
-    else if (mode === 'verify') document.getElementById('verifyForm').style.display = 'block';
-    else if (mode === 'forgot') document.getElementById('forgotPasswordForm').style.display = 'block';
-    else if (mode === 'recovery-code') document.getElementById('recoveryCodeForm').style.display = 'block';
-    else if (mode === 'new-password') document.getElementById('newPasswordForm').style.display = 'block';
-}
-
-// --- 1. LOGIN ---
-async function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPassword').value;
-
-    if(!email || !pass) { alert("Isi email dan password!"); return; }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email, password: pass
-    });
-
-    if (error) alert("Gagal Login: " + error.message);
-    else updateUIBasedOnAuth(data.user);
-}
-
-// --- 2. REGISTER ---
-async function handleRegister() {
-    const username = document.getElementById('regUsername').value;
-    const phone = document.getElementById('regPhone').value;
-    const email = document.getElementById('regEmail').value;
-    const pass = document.getElementById('regPassword').value;
-    const confirmPass = document.getElementById('regConfirmPassword').value;
-
-    if (pass !== confirmPass) { alert("Password tidak sama!"); return; }
-    if (!username || !email || !pass) { alert("Isi semua data!"); return; }
-
-    const { data, error } = await supabase.auth.signUp({
-        email: email, password: pass,
-        options: { data: { username: username, phone: phone, full_name: username } }
-    });
-
-    if (error) {
-        alert("Gagal Daftar: " + error.message);
-    } else {
-        tempEmailForVerification = email;
-        alert("Kode verifikasi dikirim ke: " + email);
-        switchAuthMode('verify');
-    }
-}
-
-// --- 3. VERIFIKASI OTP (REGISTER) ---
-async function handleVerifyOtp() {
-    const code = document.getElementById('otpCode').value;
-    if(!code) { alert("Masukkan kode!"); return; }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-        email: tempEmailForVerification, token: code, type: 'signup'
-    });
-
-    if (error) {
-        alert("Kode Salah/Kadaluarsa: " + error.message);
-    } else {
-        alert("Verifikasi Berhasil! Anda telah login.");
-        updateUIBasedOnAuth(data.user);
-    }
-}
-
-// --- 4. LUPA PASSWORD: TAHAP 1 (KIRIM KODE) ---
-async function handleForgotPasswordRequest() {
-    const email = document.getElementById('forgotEmail').value;
-    if (!email) { alert("Masukkan email Anda!"); return; }
-
-    tempEmailForVerification = email;
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-
-    if (error) {
-        alert("Gagal kirim kode: " + error.message);
-    } else {
-        alert("Kode dikirim ke: " + email);
-        switchAuthMode('recovery-code'); // Pindah ke input kode
-    }
-}
-
-// --- 5. LUPA PASSWORD: TAHAP 2 (CEK KODE) ---
-async function handleVerifyRecoveryCode() {
-    const otp = document.getElementById('recoveryOtpCode').value;
-    if (!otp) { alert("Masukkan kode OTP!"); return; }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-        email: tempEmailForVerification, token: otp, type: 'recovery'
-    });
-
-    if (error) {
-        alert("Kode Salah/Kadaluarsa: " + error.message);
-    } else {
-        // Pindah ke input password baru
-        switchAuthMode('new-password'); 
-    }
-}
-
-// --- 6. LUPA PASSWORD: TAHAP 3 (SIMPAN PASS BARU) ---
-async function handleSaveNewPassword() {
-    const newPass = document.getElementById('newResetPassword').value;
-    const confirmPass = document.getElementById('confirmResetPassword').value;
-
-    if (!newPass || !confirmPass) { alert("Isi password baru!"); return; }
-    if (newPass !== confirmPass) { alert("Password tidak cocok!"); return; }
-
-    const { error } = await supabase.auth.updateUser({ password: newPass });
-
-    if (error) {
-        alert("Gagal menyimpan password: " + error.message);
-    } else {
-        alert("Sukses! Password telah diganti. Silakan login kembali.");
-        await supabase.auth.signOut();
-        
-        // Reset Form
-        document.getElementById('recoveryOtpCode').value = '';
-        document.getElementById('newResetPassword').value = '';
-        document.getElementById('confirmResetPassword').value = '';
-        
-        switchAuthMode('login');
-    }
-}
-
-// --- LOGOUT ---
-const navLogoutBtn = document.getElementById('navLogoutBtn');
-if (navLogoutBtn) {
-    navLogoutBtn.addEventListener('click', async () => {
-        if(confirm("Yakin ingin keluar?")) {
-            const { error } = await supabase.auth.signOut();
-            if (!error) window.location.reload();
-        }
-    });
-}
-
-/* ========================================= */
-/* --- NAVIGASI HALAMAN (SPA) LAMA --- */
-/* ========================================= */
+/* --- NAVIGASI HALAMAN (SPA) --- */
 const homeSection = document.getElementById('home-page');
 const detailSection = document.getElementById('detail-page');
+const profileSection = document.getElementById('profile-page');
 const pageTitle = document.getElementById('page-title');
 
+// 1. Fungsi Ganti Halaman
 function goToPage(pageId, titleName) {
-    window.location.hash = pageId;
-    localStorage.setItem('currentTitle', titleName);
-    renderPage(pageId, titleName);
+    // Sembunyikan semua page
+    homeSection.classList.remove('active');
+    detailSection.classList.remove('active');
+    profileSection.classList.remove('active');
+
+    if (pageId === 'home-page') {
+        homeSection.classList.add('active');
+        history.pushState("", document.title, window.location.pathname);
+    } 
+    else if (pageId === 'profile-user') {
+        profileSection.classList.add('active');
+        checkUserSession(); // Update email display
+    }
+    else {
+        // Halaman Detail Produk
+        detailSection.classList.add('active');
+        if (titleName) pageTitle.innerText = titleName;
+    }
+    
+    window.scrollTo(0, 0);
 }
 
-function renderPage(pageId, titleName) {
-    homeSection.classList.remove('active');
-    detailSection.classList.add('active');
-    window.scrollTo(0, 0);
+// 2. Tombol Kembali
+function goBack() {
+    homeSection.classList.add('active');
+    detailSection.classList.remove('active');
+    profileSection.classList.remove('active');
+}
 
-    if (titleName) {
-        pageTitle.innerText = titleName;
+// 3. Handle Profile Click di Navbar Bawah
+async function handleProfileClick() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        goToPage('profile-user', 'Profil Saya');
     } else {
-        pageTitle.innerText = localStorage.getItem('currentTitle') || 'Detail Kategori';
+        openAuthModal(); // Buka Pop-up Login
     }
 }
 
-function goBack() {
-    history.pushState("", document.title, window.location.pathname + window.location.search);
-    detailSection.classList.remove('active');
-    homeSection.classList.add('active');
+
+/* --- LOGIKA AUTH MODAL (POP UP) --- */
+
+const authModal = document.getElementById('auth-modal');
+const formLogin = document.getElementById('form-login');
+const formRegister = document.getElementById('form-register');
+const formForgot = document.getElementById('form-forgot');
+const formUpdatePass = document.getElementById('form-update-pass');
+const authTitle = document.getElementById('auth-header-title');
+const authAlert = document.getElementById('auth-alert');
+const headerAuthSection = document.getElementById('header-auth-section');
+const userEmailDisplay = document.getElementById('user-email-display');
+
+// Buka Modal
+function openAuthModal() {
+    authModal.style.display = 'flex';
+    switchAuthMode('login'); // Default ke login
+    document.body.style.overflow = 'hidden'; // Kunci scroll background
 }
 
-window.addEventListener('popstate', () => {
-    const hash = window.location.hash.substring(1);
-    if (!hash) {
-        detailSection.classList.remove('active');
-        homeSection.classList.add('active');
+// Tutup Modal
+function closeAuthModal() {
+    authModal.style.display = 'none';
+    document.body.style.overflow = 'auto'; // Buka kunci scroll
+    authAlert.style.display = 'none';
+}
+
+// Tutup Modal jika klik di luar kotak putih
+window.onclick = function(event) {
+    if (event.target == authModal) {
+        closeAuthModal();
+    }
+}
+
+// Helper: Tampilkan Pesan Alert
+function showAlert(message, type) {
+    authAlert.style.display = 'block';
+    authAlert.className = `auth-alert ${type}`;
+    authAlert.innerText = message;
+}
+
+// Helper: Ganti Mode Form (Login/Daftar/Lupa)
+function switchAuthMode(mode) {
+    formLogin.style.display = 'none';
+    formRegister.style.display = 'none';
+    formForgot.style.display = 'none';
+    formUpdatePass.style.display = 'none';
+    authAlert.style.display = 'none';
+
+    if (mode === 'login') {
+        formLogin.style.display = 'block';
+        authTitle.innerText = 'Masuk Akun';
+    } else if (mode === 'register') {
+        formRegister.style.display = 'block';
+        authTitle.innerText = 'Daftar Akun';
+    } else if (mode === 'forgot') {
+        formForgot.style.display = 'block';
+        authTitle.innerText = 'Lupa Password';
+    } else if (mode === 'update') {
+        formUpdatePass.style.display = 'block';
+        authTitle.innerText = 'Reset Password';
+    }
+}
+
+// 1. FUNGSI LOGIN
+async function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-pass').value;
+
+    if (!email || !pass) return showAlert("Email dan password wajib diisi", "error");
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: pass,
+    });
+
+    if (error) {
+        showAlert("Login Gagal: " + error.message, "error");
     } else {
-        renderPage(hash, null);
+        showAlert("Login Berhasil!", "success");
+        setTimeout(() => {
+            closeAuthModal();
+            updateUI(data.session);
+        }, 1000);
+    }
+}
+
+// 2. FUNGSI REGISTER
+async function handleRegister() {
+    const email = document.getElementById('reg-email').value;
+    const pass = document.getElementById('reg-pass').value;
+
+    if (!email || !pass) return showAlert("Isi semua data", "error");
+    if (pass.length < 6) return showAlert("Password minimal 6 karakter", "error");
+
+    const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: pass,
+    });
+
+    if (error) {
+        showAlert("Daftar Gagal: " + error.message, "error");
+    } else {
+        showAlert("Berhasil! Silakan cek email untuk verifikasi.", "success");
+    }
+}
+
+// 3. FUNGSI LUPA PASSWORD
+async function handleForgotPass() {
+    const email = document.getElementById('forgot-email').value;
+    if (!email) return showAlert("Masukkan email Anda", "error");
+
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href, 
+    });
+
+    if (error) {
+        showAlert("Gagal: " + error.message, "error");
+    } else {
+        showAlert("Link reset password telah dikirim ke email!", "success");
+    }
+}
+
+// 4. FUNGSI UPDATE PASSWORD
+async function handleUpdatePass() {
+    const newPass = document.getElementById('new-pass').value;
+    if (!newPass) return showAlert("Masukkan password baru", "error");
+
+    const { data, error } = await supabase.auth.updateUser({
+        password: newPass
+    });
+
+    if (error) {
+        showAlert("Gagal update password: " + error.message, "error");
+    } else {
+        showAlert("Password berhasil diubah! Silakan login.", "success");
+        setTimeout(() => switchAuthMode('login'), 1500);
+    }
+}
+
+// 5. FUNGSI LOGOUT
+async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+        goBack(); // Ke home
+    }
+}
+
+// 6. UPDATE UI HEADER
+function updateUI(session) {
+    if (session) {
+        // Jika Login: Tampilkan Foto Profil
+        headerAuthSection.innerHTML = `
+            <img src="https://api.deline.web.id/76NssFHmcI.png" class="profile-pic" style="display:block;" onclick="goToPage('profile-user', 'Profil')">
+        `;
+    } else {
+        // Jika Belum Login: Tampilkan Tombol yang membuka MODAL
+        headerAuthSection.innerHTML = `
+             <span class="btn-login-header" onclick="openAuthModal()">Masuk / Daftar</span>
+        `;
+    }
+}
+
+// 7. CEK SESSION SAAT WEB DIBUKA
+async function checkUserSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    updateUI(session);
+    if(session && userEmailDisplay) {
+        userEmailDisplay.innerText = session.user.email;
+    }
+}
+
+// LISTENER: Mendeteksi Perubahan Auth
+supabase.auth.onAuthStateChange((event, session) => {
+    updateUI(session);
+    
+    if (event === 'PASSWORD_RECOVERY') {
+        openAuthModal();
+        switchAuthMode('update');
     }
 });
 
+// Jalankan saat load
+checkUserSession();
 
-/* ========================================= */
-/* --- SLIDER & UI INTERACTION --- */
-/* ========================================= */
+
+/* --- SLIDER LOGIC --- */
 const wrapper = document.getElementById('slider-wrapper');
 const container = document.getElementById('slider-container');
 const dots = document.querySelectorAll('.dot');
@@ -285,35 +254,23 @@ function updateSlider() {
     dots.forEach(d => d.classList.remove('active'));
     if(dots[currentIndex]) dots[currentIndex].classList.add('active');
 }
-
 function nextSlide() {
     currentIndex = (currentIndex + 1) % totalSlides;
     updateSlider();
 }
-
 function startAutoSlide() {
     stopAutoSlide(); 
-    autoSlideInterval = setInterval(nextSlide, 3000); 
+    autoSlideInterval = setInterval(nextSlide, 3000);
 }
-
 function stopAutoSlide() {
     clearInterval(autoSlideInterval);
 }
-
 if (container) {
-    container.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        stopAutoSlide();
-    });
-    container.addEventListener('touchmove', (e) => {
-        endX = e.touches[0].clientX;
-    });
+    container.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; stopAutoSlide(); });
+    container.addEventListener('touchmove', (e) => { endX = e.touches[0].clientX; });
     container.addEventListener('touchend', () => {
         if (startX > endX + 50) nextSlide();
-        else if (startX < endX - 50) {
-            currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-            updateSlider();
-        }
+        else if (startX < endX - 50) { currentIndex = (currentIndex - 1 + totalSlides) % totalSlides; updateSlider(); }
         startAutoSlide();
     });
     dots.forEach(dot => {
@@ -341,7 +298,6 @@ if (searchInput) {
         searchOverlay.classList.add('active');
         document.body.classList.add('lock-scroll');
     });
-
     closeSearchBtn.addEventListener('click', () => {
         searchOverlay.classList.remove('active');
         document.body.classList.remove('lock-scroll');
