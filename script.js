@@ -3,7 +3,8 @@
 const SUPABASE_URL = 'https://xxxxxxxxxxxx.supabase.co'; 
 const SUPABASE_KEY = 'eyJxhGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....'; // Ini Anon Key
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// PERBAIKAN: Menggunakan variabel 'sb' agar tidak bentrok dengan library 'supabase'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* --- NAVIGASI HALAMAN (SPA) --- */
 const homeSection = document.getElementById('home-page');
@@ -20,6 +21,7 @@ function goToPage(pageId, titleName) {
 
     if (pageId === 'home-page') {
         homeSection.classList.add('active');
+        // Bersihkan hash url
         history.pushState("", document.title, window.location.pathname);
     } 
     else if (pageId === 'profile-user') {
@@ -44,7 +46,8 @@ function goBack() {
 
 // 3. Handle Profile Click di Navbar Bawah
 async function handleProfileClick() {
-    const { data: { session } } = await supabase.auth.getSession();
+    // Cek apakah user sudah login
+    const { data: { session } } = await sb.auth.getSession();
     if (session) {
         goToPage('profile-user', 'Profil Saya');
     } else {
@@ -67,16 +70,22 @@ const userEmailDisplay = document.getElementById('user-email-display');
 
 // Buka Modal
 function openAuthModal() {
-    authModal.style.display = 'flex';
-    switchAuthMode('login'); // Default ke login
-    document.body.style.overflow = 'hidden'; // Kunci scroll background
+    if(authModal) {
+        authModal.style.display = 'flex';
+        switchAuthMode('login'); // Default ke login
+        document.body.style.overflow = 'hidden'; // Kunci scroll background
+    } else {
+        console.error("Elemen auth-modal tidak ditemukan!");
+    }
 }
 
 // Tutup Modal
 function closeAuthModal() {
-    authModal.style.display = 'none';
-    document.body.style.overflow = 'auto'; // Buka kunci scroll
-    authAlert.style.display = 'none';
+    if(authModal) {
+        authModal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Buka kunci scroll
+        if(authAlert) authAlert.style.display = 'none';
+    }
 }
 
 // Tutup Modal jika klik di luar kotak putih
@@ -88,18 +97,22 @@ window.onclick = function(event) {
 
 // Helper: Tampilkan Pesan Alert
 function showAlert(message, type) {
-    authAlert.style.display = 'block';
-    authAlert.className = `auth-alert ${type}`;
-    authAlert.innerText = message;
+    if(authAlert) {
+        authAlert.style.display = 'block';
+        authAlert.className = `auth-alert ${type}`;
+        authAlert.innerText = message;
+    } else {
+        alert(message); // Fallback jika elemen tidak ada
+    }
 }
 
 // Helper: Ganti Mode Form (Login/Daftar/Lupa)
 function switchAuthMode(mode) {
-    formLogin.style.display = 'none';
-    formRegister.style.display = 'none';
-    formForgot.style.display = 'none';
-    formUpdatePass.style.display = 'none';
-    authAlert.style.display = 'none';
+    if(formLogin) formLogin.style.display = 'none';
+    if(formRegister) formRegister.style.display = 'none';
+    if(formForgot) formForgot.style.display = 'none';
+    if(formUpdatePass) formUpdatePass.style.display = 'none';
+    if(authAlert) authAlert.style.display = 'none';
 
     if (mode === 'login') {
         formLogin.style.display = 'block';
@@ -123,7 +136,7 @@ async function handleLogin() {
 
     if (!email || !pass) return showAlert("Email dan password wajib diisi", "error");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await sb.auth.signInWithPassword({
         email: email,
         password: pass,
     });
@@ -147,7 +160,7 @@ async function handleRegister() {
     if (!email || !pass) return showAlert("Isi semua data", "error");
     if (pass.length < 6) return showAlert("Password minimal 6 karakter", "error");
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await sb.auth.signUp({
         email: email,
         password: pass,
     });
@@ -164,7 +177,7 @@ async function handleForgotPass() {
     const email = document.getElementById('forgot-email').value;
     if (!email) return showAlert("Masukkan email Anda", "error");
 
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { data, error } = await sb.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.href, 
     });
 
@@ -180,7 +193,7 @@ async function handleUpdatePass() {
     const newPass = document.getElementById('new-pass').value;
     if (!newPass) return showAlert("Masukkan password baru", "error");
 
-    const { data, error } = await supabase.auth.updateUser({
+    const { data, error } = await sb.auth.updateUser({
         password: newPass
     });
 
@@ -194,21 +207,28 @@ async function handleUpdatePass() {
 
 // 5. FUNGSI LOGOUT
 async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await sb.auth.signOut();
     if (!error) {
         goBack(); // Ke home
+        // updateUI dipanggil oleh onAuthStateChange
     }
 }
 
 // 6. UPDATE UI HEADER
 function updateUI(session) {
+    if (!headerAuthSection) return;
+
     if (session) {
         // Jika Login: Tampilkan Foto Profil
         headerAuthSection.innerHTML = `
             <img src="https://api.deline.web.id/76NssFHmcI.png" class="profile-pic" style="display:block;" onclick="goToPage('profile-user', 'Profil')">
         `;
+        // Update foto profil di navbar bawah juga jika ada
+        const navProfileImg = document.getElementById('nav-profile-img');
+        if(navProfileImg) navProfileImg.src = "https://api.deline.web.id/76NssFHmcI.png"; 
+
     } else {
-        // Jika Belum Login: Tampilkan Tombol yang membuka MODAL
+        // Jika Belum Login: Tampilkan Tombol Login
         headerAuthSection.innerHTML = `
              <span class="btn-login-header" onclick="openAuthModal()">Masuk / Daftar</span>
         `;
@@ -217,7 +237,7 @@ function updateUI(session) {
 
 // 7. CEK SESSION SAAT WEB DIBUKA
 async function checkUserSession() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     updateUI(session);
     if(session && userEmailDisplay) {
         userEmailDisplay.innerText = session.user.email;
@@ -225,7 +245,7 @@ async function checkUserSession() {
 }
 
 // LISTENER: Mendeteksi Perubahan Auth
-supabase.auth.onAuthStateChange((event, session) => {
+sb.auth.onAuthStateChange((event, session) => {
     updateUI(session);
     
     if (event === 'PASSWORD_RECOVERY') {
@@ -290,7 +310,7 @@ const searchOverlay = document.getElementById('searchOverlay');
 const header = document.getElementById('mainHeader');
 const closeSearchBtn = document.getElementById('closeSearchBtn');
 
-if (searchInput) {
+if (searchInput && searchOverlay && header && closeSearchBtn) {
     searchInput.addEventListener('focus', () => {
         const headerHeight = header.offsetHeight;
         searchOverlay.style.top = headerHeight + 'px';
