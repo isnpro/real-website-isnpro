@@ -3,8 +3,8 @@
 /* ========================================= */
 
 // 1. Masukkan URL dan ANON KEY dari Dashboard Supabase Anda di sini
-const supabaseUrl = 'https://qxjefdaojlctmlktztkt.supabase.co'; 
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4amVmZGFvamxjdG1sa3R6dGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MjAxMDcsImV4cCI6MjA4MDA5NjEwN30.vFpaoqAqSBOo1WiUECxK3uPApHfv60plfJxWrv36pCk'; 
+const supabaseUrl = 'https://gdrkjtgjunwuxptjmola.supabase.co'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkcmtqdGdqdW53dXhwdGptb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NDEyMTYsImV4cCI6MjA4MDExNzIxNn0.IUXODaaFbbKMFodB_HJXOxZ9m2lHQ2iy3wNrwa7sExI'; 
 
 // Inisialisasi Client
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
